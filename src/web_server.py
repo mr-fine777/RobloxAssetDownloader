@@ -19,37 +19,37 @@ def download_api():
     This endpoint intentionally does not serve static files so Apache can handle them.
     """
     try:
-        data = None
+        # Parse input
         if request.is_json:
             data = request.get_json()
         else:
             data = request.form.to_dict()
 
-    clothing = data.get("clothing") if isinstance(data, dict) else None
-    if not clothing:
-        return jsonify({"error": "Please provide clothing id or url in field 'clothing'"}), 400
+        clothing = data.get("clothing") if isinstance(data, dict) else None
+        if not clothing:
+            return jsonify({"error": "Please provide clothing id or url in field 'clothing'"}), 400
 
-    # Run the asynchronous processing synchronously for this endpoint
-    downloader = RobloxAssetDownloader()
-    try:
-        asyncio.run(downloader.process_asset(clothing))
-    except Exception as e:
-        logging.exception("Error processing asset")
-        return jsonify({"error": str(e)}), 500
+        # Run the asynchronous processing synchronously for this endpoint
+        downloader = RobloxAssetDownloader()
+        try:
+            asyncio.run(downloader.process_asset(clothing))
+        except Exception:
+            logging.exception("Error processing asset")
+            return jsonify({"error": "Error processing asset"}), 500
 
-    # Determine the numeric asset id from the provided input
-    asset_id = re.sub(r"[^0-9]", "", clothing)
-    if not asset_id:
-        return jsonify({"error": "Could not determine numeric asset id from input"}), 400
+        # Determine the numeric asset id from the provided input
+        asset_id = re.sub(r"[^0-9]", "", clothing)
+        if not asset_id:
+            return jsonify({"error": "Could not determine numeric asset id from input"}), 400
 
-    # Determine where files are written. In serverless environments we set
-    # DOWNLOADS_DIR (usually /tmp). Fall back to the repo 'downloads/' for
-    # local development.
-    downloads_dir = os.environ.get(
-        "DOWNLOADS_DIR",
-        os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads"),
-    )
-    file_path = os.path.join(downloads_dir, f"{asset_id}.png")
+        # Determine where files are written. In serverless environments we set
+        # DOWNLOADS_DIR (usually /tmp). Fall back to the repo 'downloads/' for
+        # local development.
+        downloads_dir = os.environ.get(
+            "DOWNLOADS_DIR",
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads"),
+        )
+        file_path = os.path.join(downloads_dir, f"{asset_id}.png")
 
         if not os.path.exists(file_path):
             return jsonify({"error": "Download finished but output file not found"}), 500
