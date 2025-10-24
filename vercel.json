@@ -2,16 +2,16 @@
   "version": 2,
   "builds": [
     {
+      "src": "src/web_server.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.12"
+      }
+    },
+    {
       "src": "server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "src/web_server.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "src/static/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -20,16 +20,9 @@
       "dest": "src/web_server.py"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "src/static/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ],
-  "env": {
-    "PYTHONPATH": "src",
-    "PORT": "3000"
-  }
+  ]
+}
 }
