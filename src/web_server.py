@@ -63,6 +63,45 @@ def download_api():
         return jsonify({"error": "Internal server error"}), 500
 
 
+@app.route("/download/<asset_id>", methods=["GET"])  # One-click download URL
+def download_get(asset_id: str):
+    """One-click GET endpoint to download a clothing asset by ID.
+
+    Example: GET /download/81146553878533
+    This proxies the same processing as the POST /api/download endpoint
+    but accepts the asset id directly in the URL for convenience.
+    """
+    try:
+        # Normalize asset id to digits only
+        asset_id_clean = re.sub(r"[^0-9]", "", asset_id)
+        if not asset_id_clean:
+            return jsonify({"error": "Invalid asset id"}), 400
+
+        # Run the processing (same as POST handler)
+        downloader = RobloxAssetDownloader()
+        try:
+            asyncio.run(downloader.process_asset(asset_id_clean))
+        except Exception:
+            logging.exception("Error processing asset via GET download")
+            return jsonify({"error": "Error processing asset"}), 500
+
+        downloads_dir = os.environ.get(
+            "DOWNLOADS_DIR",
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads"),
+        )
+        file_path = os.path.join(downloads_dir, f"{asset_id_clean}.png")
+
+        if not os.path.exists(file_path):
+            return jsonify({"error": "Download finished but output file not found"}), 500
+
+        return send_file(
+            file_path, mimetype="image/png", as_attachment=True, download_name=f"{asset_id_clean}.png"
+        )
+    except Exception:
+        logging.exception("Unhandled exception in download_get")
+        return jsonify({"error": "Internal server error"}), 500
+
+
 if __name__ == "__main__":
     # For local development
     app.run(host="127.0.0.1", port=5000, debug=False)

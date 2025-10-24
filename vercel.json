@@ -20,6 +20,10 @@
       "dest": "src/vercel_app.py"
     },
     {
+      "src": "/download/(.*)",
+      "dest": "src/vercel_app.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "src/static/$1"
     }
