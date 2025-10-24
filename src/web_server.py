@@ -41,11 +41,17 @@ def download_api():
     if not asset_id:
         return jsonify({"error": "Could not determine numeric asset id from input"}), 400
 
-    # Use absolute path relative to the API root directory
-    file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads", f"{asset_id}.png")
+    # Determine where files are written. In serverless environments we set
+    # DOWNLOADS_DIR (usually /tmp). Fall back to the repo 'downloads/' for
+    # local development.
+    downloads_dir = os.environ.get(
+        "DOWNLOADS_DIR",
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads"),
+    )
+    file_path = os.path.join(downloads_dir, f"{asset_id}.png")
 
     if not os.path.exists(file_path):
-        return jsonify({"error": "Download finished but output file not found", "path": file_path}), 500
+        return jsonify({"error": "Download finished but output file not found"}), 500
 
     # Return the processed image as an attachment
     return send_file(file_path, mimetype="image/png", as_attachment=True, download_name=f"{asset_id}.png")

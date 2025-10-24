@@ -17,8 +17,17 @@ class FileHandler:
 
     @staticmethod
     def create_download_directory() -> str:
-        """Create and return the download directory path."""
-        download_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads")
+        """Create and return the download directory path.
+
+        If the environment variable `DOWNLOADS_DIR` is set (e.g. in serverless
+        environments like Vercel), use that directory (which should be a
+        writable temporary directory such as `/tmp`). Otherwise fall back to a
+        `downloads/` directory next to the project root (used for local dev).
+        """
+        download_dir = os.environ.get(
+            "DOWNLOADS_DIR",
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads"),
+        )
         os.makedirs(download_dir, exist_ok=True)
         return download_dir
 

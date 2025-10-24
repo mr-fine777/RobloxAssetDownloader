@@ -1,15 +1,9 @@
-from flask import Flask
-from web_server import app as flask_app
+"""
+Vercel WSGI entrypoint.
 
-# Initialize the Flask application
-app = flask_app
+Vercel's Python runtime will look for a WSGI callable named `app`.
+We simply re-export the Flask app defined in `src/web_server.py` so the
+serverless runtime can invoke it directly.
+"""
 
-# Vercel serverless handler
-def handler(request):
-    """Handle requests in a serverless context."""
-    with app.request_context(request):
-        try:
-            return app.full_dispatch_request()
-        except Exception as e:
-            app.logger.error(f"Error handling request: {e}")
-            return 'Internal Server Error', 500
+from web_server import app  # re-export the Flask WSGI application
