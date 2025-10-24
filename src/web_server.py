@@ -18,11 +18,12 @@ def download_api():
 
     This endpoint intentionally does not serve static files so Apache can handle them.
     """
-    data = None
-    if request.is_json:
-        data = request.get_json()
-    else:
-        data = request.form.to_dict()
+    try:
+        data = None
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
 
     clothing = data.get("clothing") if isinstance(data, dict) else None
     if not clothing:
@@ -50,11 +51,16 @@ def download_api():
     )
     file_path = os.path.join(downloads_dir, f"{asset_id}.png")
 
-    if not os.path.exists(file_path):
-        return jsonify({"error": "Download finished but output file not found"}), 500
+        if not os.path.exists(file_path):
+            return jsonify({"error": "Download finished but output file not found"}), 500
 
-    # Return the processed image as an attachment
-    return send_file(file_path, mimetype="image/png", as_attachment=True, download_name=f"{asset_id}.png")
+        # Return the processed image as an attachment
+        return send_file(
+            file_path, mimetype="image/png", as_attachment=True, download_name=f"{asset_id}.png"
+        )
+    except Exception:
+        logging.exception("Unhandled exception in download_api")
+        return jsonify({"error": "Internal server error"}), 500
 
 
 if __name__ == "__main__":
