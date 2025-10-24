@@ -10,8 +10,8 @@
       }
     },
     {
-      "src": "server.js",
-      "use": "@vercel/node"
+      "src": "src/static/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -21,7 +21,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "src/static/$1"
     }
   ],
   "env": {
