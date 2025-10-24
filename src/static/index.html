@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Roblox Clothing Downloader</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 760px; margin: 48px auto; padding: 0 16px; }
+      label, input, button { display:block; width:100%; }
+      input { padding: 8px; margin:8px 0 16px; }
+      button { padding:10px 14px; cursor:pointer }
+      .log { white-space:pre-wrap; background:#f6f6f6; padding:12px; border-radius:6px; margin-top:12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Roblox Clothing Downloader</h1>
+
+    <p>Enter a Clothing ID or full Roblox asset URL and click "Download". The processed PNG will be returned as a download.</p>
+
+    <label for="clothing">Clothing ID or URL</label>
+    <input id="clothing" placeholder="e.g. https://www.roblox.com/catalog/... or numeric id" />
+    
+    <button id="downloadBtn">Download</button>
+
+    <div id="status" class="log"></div>
+
+    <script>
+      const btn = document.getElementById('downloadBtn');
+      const input = document.getElementById('clothing');
+      const status = document.getElementById('status');
+
+      function log(msg){ status.textContent = msg }
+
+      btn.addEventListener('click', async () => {
+        const clothing = input.value.trim();
+        if(!clothing){ log('Please enter a clothing ID or URL'); return }
+
+        log('Requesting download...');
+
+        try{
+          // Compute API endpoint relative to the current page location so this UI can be hosted
+          // at any path (root or subdirectory). We strip trailing '/index.html' if present.
+          let base = window.location.pathname || '/';
+          if(base.endsWith('/index.html')) base = base.slice(0, -11);
+          if(!base.endsWith('/')) base = base + '/';
+          const endpoint = base + 'api/download';
+
+          const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clothing })
+          });
+
+          const contentType = resp.headers.get('content-type') || '';
+          if(!resp.ok){
+            // Try to parse JSON error
+            if(contentType.includes('application/json')){
+              const err = await resp.json();
+              log('Error: ' + (err.error || JSON.stringify(err)) );
+            } else {
+              const txt = await resp.text();
+              log('Error: ' + txt);
+            }
+            return;
+          }
+
+          if(contentType.includes('image')){
+            const blob = await resp.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // Try to infer filename from Content-Disposition
+            const disp = resp.headers.get('content-disposition') || '';
+            let filename = 'download.png';
+            const match = /filename\*?=([^;]+)/i.exec(disp);
+            if(match && match[1]) filename = match[1].replace(/['"\s]/g,'');
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            log('Download started: ' + filename);
+            return;
+          }
+
+          // If not an image, try parse as JSON
+          if(contentType.includes('application/json')){
+            const data = await resp.json();
+            log('Response: ' + JSON.stringify(data));
+            return;
+          }
+
+          const text = await resp.text();
+          log('Response: ' + text);
+
+        }catch(err){
+          log('Network error: ' + err.message);
+        }
+      });
+    </script>
+  </body>
+</html>

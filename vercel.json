@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/web_server.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "src/static/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "src/web_server.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "src/static/$1"
+    }
+  ],
+  "env": {
+    "ROBLOX_COOKIE": "@roblox-cookie"
+  }
+}
