@@ -22,8 +22,8 @@ app.post('/api/download', async (req, res) => {
     return res.status(400).json({ error: "Please provide 'clothing' in the request body." });
   }
 
-  // Try to proxy to Python backend at localhost:5000 (common dev location)
-  const pythonUrl = 'http://127.0.0.1:5000/api/download';
+  // In production (Vercel), the Python backend is at the same host
+  const pythonUrl = process.env.VERCEL ? '/api/download' : 'http://127.0.0.1:5000/api/download';
   try {
     const proxied = await fetch(pythonUrl, {
       method: 'POST',
