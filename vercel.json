@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/web_server.py",
+      "src": "src/vercel_app.py",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "15mb",
@@ -17,11 +17,15 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "src/web_server.py"
+      "dest": "src/vercel_app.py"
     },
     {
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONPATH": "src",
+    "DOWNLOADS_DIR": "/tmp"
+  }
 }
