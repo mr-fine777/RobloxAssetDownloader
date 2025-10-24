@@ -60,6 +60,7 @@ def download_api():
 if __name__ == "__main__":
     # For local development
     app.run(host="127.0.0.1", port=5000, debug=False)
-else:
-    # For Vercel
-    # The app variable will be used by the Vercel Python runtime
+# When imported by a WSGI server (like Vercel's Python runtime) the
+# `app` Flask instance defined above will be used directly. No further
+# runtime-specific wiring is necessary here.
+
