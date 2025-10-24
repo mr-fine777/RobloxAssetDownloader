@@ -21,6 +21,6 @@
     }
   ],
   "env": {
-    "ROBLOX_COOKIE": "@roblox-cookie"
+    "PYTHONPATH": "src"
   }
 }
