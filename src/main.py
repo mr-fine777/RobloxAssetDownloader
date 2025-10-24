@@ -120,8 +120,7 @@ async def handle_download() -> None:
     if asset_type is None or asset_id is None:
         error_msg = f"asset type: {asset_type} : asset id: {asset_id}"
         logger.error(error_msg)
-        return
-    
+    return
     if asset_type != "group":
         await handle_asset(interface, asset_id)
     else:

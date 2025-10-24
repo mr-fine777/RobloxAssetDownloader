@@ -25,6 +25,7 @@ api_handler.py
 import asyncio
 import ssl
 import time
+import os
 from logging import Logger
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -73,14 +74,12 @@ class APIHandler:
 
         # Default headers to appear like a browser; some Roblox endpoints
         # may reject requests without a common User-Agent.
-        import os
-        
         self._default_headers = {
             "User-Agent": "Mozilla/5.0 (compatible; RobloxDownloader/1.0)"
         }
-        
+
         # Add Roblox cookie from environment variable if available
-        roblox_cookie = os.getenv('ROBLOX_COOKIE')
+        roblox_cookie = os.getenv("ROBLOX_COOKIE")
         if roblox_cookie:
             self._default_headers["Cookie"] = f".ROBLOSECURITY={roblox_cookie}"
     async def _is_json_response(self, response: aiohttp.ClientResponse) -> bool:

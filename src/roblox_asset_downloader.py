@@ -164,7 +164,6 @@ class RobloxAssetDownloader:
             # Ensure we're treating it as binary data
             asset_img = Image.open(io.BytesIO(image_bytes))
             asset_img.load()  # Force loading of the image
-            
             return asset_img
         except (IOError, OSError, UnidentifiedImageError) as e:
             logger.error("Error processing image from %s: %s", url, str(e))
