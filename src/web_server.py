@@ -102,6 +102,51 @@ def download_get(asset_id: str):
         return jsonify({"error": "Internal server error"}), 500
 
 
+@app.route("/api/check_cookie", methods=["GET"])  # Safe debug endpoint
+def check_cookie():
+    """Check whether ROBLOX_COOKIE is set in the environment and test asset access.
+
+    Query params:
+      - asset_id: optional asset id to test (defaults to a small public asset)
+
+    Returns a small JSON payload with `has_cookie`, `asset_status` (HTTP code)
+    and a short `message`. Does NOT return or log the cookie value.
+    """
+    try:
+        asset_id = request.args.get("asset_id", "1818")
+        asset_id = re.sub(r"[^0-9]", "", asset_id)
+        test_url = f"https://assetdelivery.roblox.com/v1/asset/?id={asset_id}"
+
+        has_cookie = bool(os.environ.get("ROBLOX_COOKIE") or os.environ.get("ROBLOSECURITY"))
+
+        # Use APIHandler to perform a single request and return status
+        handler = APIHandler()
+        try:
+            result = asyncio.run(handler.fetch_json(test_url))
+            if result is None:
+                # fetch_json returns None on non-200 or errors
+                return jsonify({
+                    "has_cookie": has_cookie,
+                    "asset_status": "non-200 or error",
+                    "message": "Asset request returned non-200 or could not be parsed",
+                }), 200
+            # If we got JSON back, return the keys lightly
+            return jsonify({
+                "has_cookie": has_cookie,
+                "asset_status": 200,
+                "message": "Asset request succeeded (JSON)",
+                "sample_keys": list(result.keys()) if isinstance(result, dict) else None,
+            }), 200
+        finally:
+            try:
+                asyncio.run(handler.close())
+            except Exception:
+                pass
+    except Exception:
+        logging.exception("Unhandled exception in check_cookie")
+        return jsonify({"error": "Internal server error"}), 500
+
+
 if __name__ == "__main__":
     # For local development
     app.run(host="127.0.0.1", port=5000, debug=False)
