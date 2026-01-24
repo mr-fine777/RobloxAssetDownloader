@@ -14,8 +14,8 @@
       "use": "@vercel/static"
     },
     {
-      "src": "src/assets/whitespace.png",
-      "dest": "/assets/whitespace.png",
+      "src": "src/assets/**",
+      "dest": "/assets/",
       "use": "@vercel/static"
     }
   ],
