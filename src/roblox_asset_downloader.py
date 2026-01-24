@@ -202,23 +202,34 @@ class RobloxAssetDownloader:
             if not asset_img:
                 return
 
-            # Create an asset instance for handling overlay operations
-            asset_type = asset_data["content name"]
-            asset_instance = AssetTypeFactory.create_asset(asset_type, clothing_id, asset_img)
+            # --- TSHIRT DETECTION AND OVERLAY LOGIC ---
+            # If the image is not 585x559, treat as tshirt (no overlay). Otherwise, overlay whitespace.png
+            is_tshirt = not (asset_img.width == 585 and asset_img.height == 559)
+            logger.info(f"Asset image size: {asset_img.width}x{asset_img.height} | is_tshirt={is_tshirt}")
 
-            if not asset_instance:
-                logger.error("Failed to create asset instance for asset type: %s", asset_type)
-                return
-
-            # Overlay the image on the template (if needed)
-            overlayed_image = await asset_instance.overlay_image()
-            if not overlayed_image:
-                logger.error("Failed to overlay image on %s template.", asset_type)
-                return
-
-            # Save the overlayed image
-            await asset_instance.save_asset_image()
-            logger.info("Successfully processed and saved asset for clothing ID: %s", clothing_id)
+            if is_tshirt:
+                # Save the image directly, no overlay
+                self.file_handler.save_image(asset_img, f"{validate_clothing_id(clothing_id)}.png")
+                logger.info("Saved tshirt asset without overlay for clothing ID: %s", clothing_id)
+            else:
+                # Overlay whitespace.png on top
+                from pathlib import Path
+                whitespace_path = Path("src", "assets", "whitespace.png")
+                if whitespace_path.exists():
+                    try:
+                        whitespace_img = Image.open(whitespace_path).convert("RGBA")
+                        # Composite whitespace.png over the asset image
+                        base_img = asset_img.convert("RGBA")
+                        overlayed = Image.alpha_composite(base_img, whitespace_img)
+                        self.file_handler.save_image(overlayed, f"{validate_clothing_id(clothing_id)}.png")
+                        logger.info("Overlayed whitespace.png and saved for clothing ID: %s", clothing_id)
+                    except Exception as e:
+                        logger.error(f"Failed to overlay whitespace.png: {e}")
+                        # Fallback: save original image
+                        self.file_handler.save_image(asset_img, f"{validate_clothing_id(clothing_id)}.png")
+                else:
+                    logger.warning("whitespace.png not found, saving original image.")
+                    self.file_handler.save_image(asset_img, f"{validate_clothing_id(clothing_id)}.png")
 
         finally:
             # Always attempt to close the API handler session
