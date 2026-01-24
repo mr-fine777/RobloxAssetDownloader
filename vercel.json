@@ -15,7 +15,6 @@
     },
     {
       "src": "src/assets/**",
-      "dest": "/assets/",
       "use": "@vercel/static"
     }
   ],
