@@ -12,6 +12,10 @@
     {
       "src": "src/static/**",
       "use": "@vercel/static"
+    },
+    {
+      "src": "src/assets/whitespace.png",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
