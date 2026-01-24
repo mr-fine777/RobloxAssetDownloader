@@ -353,12 +353,25 @@
             return;
           }
 
+
           function getFilename(resp) {
+            // Try to extract the ID from the Content-Disposition or fallback to input value
             const disp = resp.headers.get('content-disposition') || '';
-            let filename = 'download.png';
+            let id = null;
             const match = /filename\*?=([^;]+)/i.exec(disp);
-            if(match && match[1]) filename = match[1].replace(/['"\s]/g,'');
-            return filename;
+            if(match && match[1]) {
+              // Extract just the numeric ID
+              const idMatch = match[1].match(/(\d+)/);
+              if(idMatch) id = idMatch[1];
+            }
+            if(!id) {
+              // fallback: try to get from input
+              const val = input.value.trim();
+              const idMatch = val.match(/(\d+)/);
+              if(idMatch) id = idMatch[1];
+            }
+            if(!id) id = 'download';
+            return id + '_threadline.png';
           }
 
           function triggerDownload(url, filename, isObjectUrl=false) {
