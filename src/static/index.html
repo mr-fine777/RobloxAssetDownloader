@@ -310,23 +310,65 @@
             return;
           }
 
+
           if(contentType.includes('image')){
+            // Store original image in localStorage as base64
             const blob = await resp.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            // Try to infer filename from Content-Disposition
+            const reader = new FileReader();
+            reader.onloadend = async function() {
+              const base64data = reader.result;
+              try {
+                localStorage.setItem('roblox_asset_original', base64data);
+              } catch (e) {
+                // Ignore quota errors
+              }
+              // Now overlay whitespace.png if needed
+              const img = new window.Image();
+              img.onload = async function() {
+                // If not 585x559, just download as-is
+                if(img.width !== 585 || img.height !== 559){ 
+                  triggerDownload(base64data, getFilename(resp));
+                  log('Download started: ' + getFilename(resp));
+                  return;
+                }
+                // Overlay whitespace.png
+                const wsImg = new window.Image();
+                wsImg.onload = function() {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0);
+                  ctx.drawImage(wsImg, 0, 0);
+                  canvas.toBlob(function(overlayBlob){
+                    triggerDownload(URL.createObjectURL(overlayBlob), getFilename(resp), true);
+                    log('Download started: ' + getFilename(resp));
+                  }, 'image/png');
+                };
+                wsImg.src = 'assets/whitespace.png';
+              };
+              img.src = base64data;
+            };
+            reader.readAsDataURL(blob);
+            return;
+          }
+
+          function getFilename(resp) {
             const disp = resp.headers.get('content-disposition') || '';
             let filename = 'download.png';
             const match = /filename\*?=([^;]+)/i.exec(disp);
             if(match && match[1]) filename = match[1].replace(/['"\s]/g,'');
+            return filename;
+          }
+
+          function triggerDownload(url, filename, isObjectUrl=false) {
+            const a = document.createElement('a');
+            a.href = url;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
             a.remove();
-            window.URL.revokeObjectURL(url);
-            log('Download started: ' + filename);
-            return;
+            if(isObjectUrl) window.URL.revokeObjectURL(url);
           }
 
           // If not an image, try parse as JSON
