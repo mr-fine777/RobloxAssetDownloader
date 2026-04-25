@@ -12,11 +12,20 @@ at import time and gives clearer error responses in the deployment logs.
 import logging
 import traceback
 
+
 from flask import Flask, jsonify
+
+# --- CORS support: add Access-Control-Allow-Origin header to all responses ---
+def add_cors_headers(response):
+	response.headers['Access-Control-Allow-Origin'] = '*'
+	response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+	response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+	return response
 
 try:
 	# Attempt to import the real app
 	from web_server import app  # type: ignore
+	app.after_request(add_cors_headers)
 except Exception as exc:  # pragma: no cover - helpful for runtime debugging
 	# Log the import error with traceback so it appears in Vercel build logs
 	logging.exception("Failed to import web_server.app for Vercel WSGI entrypoint")
@@ -24,6 +33,7 @@ except Exception as exc:  # pragma: no cover - helpful for runtime debugging
 
 	# Create a minimal Flask app that returns a helpful 500 response
 	app = Flask(__name__)
+	app.after_request(add_cors_headers)
 
 	@app.route("/__vercel_healthcheck")
 	def _health():
@@ -37,4 +47,3 @@ except Exception as exc:  # pragma: no cover - helpful for runtime debugging
 			"<pre>" + tb + "</pre>",
 			500,
 		)
-
