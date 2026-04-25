@@ -5,6 +5,7 @@ import re
 import logging
 
 from roblox_asset_downloader import RobloxAssetDownloader
+from api_handler import APIHandler
 
 # Minimal Flask app that exposes only the API path used by the front-end.
 # The static site should be served by Apache/XAMPP (copy src/static into htdocs).
