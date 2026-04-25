@@ -24,7 +24,7 @@ def add_cors_headers(response):
 
 try:
 	# Attempt to import the real app
-	from web_server import app  # type: ignore
+	from src.web_server import app  # type: ignore
 	app.after_request(add_cors_headers)
 except Exception as exc:  # pragma: no cover - helpful for runtime debugging
 	# Log the import error with traceback so it appears in Vercel build logs
