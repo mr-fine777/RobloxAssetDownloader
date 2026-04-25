@@ -10,6 +10,14 @@ from roblox_asset_downloader import RobloxAssetDownloader
 # The static site should be served by Apache/XAMPP (copy src/static into htdocs).
 app = Flask(__name__)
 
+# --- CORS support: add Access-Control-Allow-Origin header to all responses ---
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    return response
+
 
 @app.route("/api/download", methods=["POST"])  # API path intended for proxying by Apache
 def download_api():
@@ -153,4 +161,3 @@ if __name__ == "__main__":
 # When imported by a WSGI server (like Vercel's Python runtime) the
 # `app` Flask instance defined above will be used directly. No further
 # runtime-specific wiring is necessary here.
-
