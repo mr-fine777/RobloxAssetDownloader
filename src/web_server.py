@@ -11,12 +11,12 @@ from roblox_asset_downloader import RobloxAssetDownloader
 app = Flask(__name__)
 
 # --- CORS support: add Access-Control-Allow-Origin header to all responses ---
-@app.after_request
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     return response
+app.after_request(add_cors_headers)
 
 
 @app.route("/api/download", methods=["POST"])  # API path intended for proxying by Apache
