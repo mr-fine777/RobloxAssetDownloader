@@ -136,6 +136,18 @@
   </div>
 
     <script>
+      // Forward wheel gestures to the embedding page so its scroll overlay can
+      // take over even while this cross-origin iframe is active.
+      if (window.parent !== window) {
+        window.addEventListener('wheel', function (event) {
+          window.parent.postMessage({
+            type: 'threadline:iframe-wheel',
+            deltaY: event.deltaY,
+            deltaMode: event.deltaMode
+          }, '*');
+        }, { capture: true, passive: true });
+      }
+
       // --- Begin: ripple.html logic ---
   (function() {
     const DOT_COLOR = '#8949ab';
